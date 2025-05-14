@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using RemnantOverseer.Utilities;
 using RemnantOverseer.ViewModels;
 using System;
 
@@ -18,7 +17,6 @@ public partial class MainWindow : Window
             Design.SetDataContext(this, new MainWindowViewModel(settingsService, new Services.SaveDataService(settingsService)));
         }
         InitializeComponent();
-        Win32Properties.AddWndProcHookCallback(this, WndProcHook);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -28,16 +26,6 @@ public partial class MainWindow : Window
         ((MainWindowViewModel)DataContext).NotificationManager = new Avalonia.Controls.Notifications.WindowNotificationManager(GetTopLevel(this));
         ((MainWindowViewModel)DataContext).NotificationManager!.Position = Avalonia.Controls.Notifications.NotificationPosition.BottomRight;
         ((MainWindowViewModel)DataContext).OnViewLoaded();
-    }
-
-    private nint WndProcHook(nint hWnd, uint msg, nint wParam, nint lParam, ref bool handled)
-    {
-        if (msg == NativeMethods.RO_WM_SHOWME)
-        {
-            ShowMe();
-            handled = true;
-        }
-        return nint.Zero;
     }
 
     private void ShowMe()

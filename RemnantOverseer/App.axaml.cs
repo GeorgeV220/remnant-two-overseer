@@ -66,6 +66,8 @@ public partial class App : Application
             {
                 DataContext = App.Resolve<MainWindowViewModel>()
             };
+
+            Program.InstanceHelper?.RegisterMainWindow(desktop.MainWindow);
         }
 
         base.OnFrameworkInitializationCompleted();
