@@ -1,0 +1,70 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - "main"
+      - "ci"
+
+jobs:
+  build-and-release:
+    name: Build and Create Release
+    runs-on: ubuntu-latest
+
+    env:
+      DOTNET_VERSION: '8.0.x'
+      PROJECT_PATH: './RemnantOverseer/RemnantOverseer.csproj'
+      OUTPUT_DIR: './publish'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish for Windows
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r win-x64 \
+            -p:PublishSingleFile=true \
+            -p:SelfContained=true \
+            -o ${{ env.OUTPUT_DIR }}/win
+
+      - name: Publish for Linux
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r linux-x64 \
+            -p:PublishSingleFile=true \
+            -p:SelfContained=true \
+            -o ${{ env.OUTPUT_DIR }}/linux
+
+      - name: Create timestamp-based release name
+        id: release-name
+        run: echo "RELEASE_NAME=$(date -u +'%Y-%m-%d_%H-%M-%S')" >> "$GITHUB_OUTPUT"
+
+      - name: Zip artifacts
+        run: |
+          cd ${{ env.OUTPUT_DIR }}
+          zip -r RemnantOverseer_win.zip win/
+          zip -r RemnantOverseer_linux.zip linux/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.release-name.outputs.RELEASE_NAME }}
+          tag_name: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.OUTPUT_DIR }}/RemnantOverseer_win.zip
+            ${{ env.OUTPUT_DIR }}/RemnantOverseer_linux.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
