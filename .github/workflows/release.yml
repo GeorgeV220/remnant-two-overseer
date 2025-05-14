@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - "main"
-      - "ci"
+      - "dev"
 
 jobs:
   build-and-release:
@@ -56,13 +56,22 @@ jobs:
           zip -r RemnantOverseer_win.zip win/
           zip -r RemnantOverseer_linux.zip linux/
 
+      - name: Set prerelease flag based on branch
+        id: prerelease
+        run: |
+          if [ "${GITHUB_REF}" == "refs/heads/dev" ]; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.release-name.outputs.RELEASE_NAME }}
-          tag_name: ${{ github.sha }}
+          tag_name: ${{ steps.release-name.outputs.RELEASE_NAME }}
           draft: false
-          prerelease: false
+          prerelease: ${{ env.PRERELEASE }}
           files: |
             ${{ env.OUTPUT_DIR }}/RemnantOverseer_win.zip
             ${{ env.OUTPUT_DIR }}/RemnantOverseer_linux.zip
