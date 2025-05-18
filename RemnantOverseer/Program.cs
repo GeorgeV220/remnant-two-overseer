@@ -7,7 +7,6 @@ namespace RemnantOverseer;
 
 internal sealed class Program
 {
-    private const int InstancePort = 23456;
     public static SingleInstanceHelper? InstanceHelper { get; private set; }
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -16,7 +15,7 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        InstanceHelper = new SingleInstanceHelper(InstancePort);
+        InstanceHelper = new SingleInstanceHelper();
 
         if (InstanceHelper.IsPrimaryInstance)
         {
@@ -27,7 +26,7 @@ internal sealed class Program
         }
         else
         {
-            SingleInstanceHelper.NotifyExistingInstance(InstancePort);
+            SingleInstanceHelper.NotifyExistingInstance();
         }
     }
 
